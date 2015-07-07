@@ -10,7 +10,7 @@
 #include <iterator>
 #include <algorithm>
 
-//#define _XOPEN_SOURCE 500
+
 #include <unistd.h>
 
 #include "omp.h"
@@ -42,7 +42,7 @@ void debug(bool dbg, int n){
 int main(int argc, char *argv[]){
 
   const string name(argv[1]);
-  string path = "./";  //"/work/norgeot/";
+  string path = "/work/norgeot/";
 
   //Ouverture
   MPI_Init(&argc, &argv);

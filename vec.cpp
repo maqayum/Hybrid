@@ -10,7 +10,6 @@
 #include <sstream>
 #include <fcntl.h>
 
-#define _XOPEN_SOURCE 500
 #include <unistd.h>
 
 #include "vec.h"

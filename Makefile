@@ -1,7 +1,7 @@
 SRC=vec.cpp
 MAINFILE=main
-CXX=mpic++.mpich #mpiicpc #mpic++.openmpi
-CXXFLAGS=-O2 -g -fopenmp
+CXX=mpiicpc #mpiicpc #mpic++.openmpi
+CXXFLAGS=-O2 -fopenmp -mt_mpi #-g
 EXEC=main
 OBJ= $(SRC:.cpp=.o)
 HEA= $(SRC:.cpp=.h)
