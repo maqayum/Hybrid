@@ -1,5 +1,5 @@
 #!/bin/bash
-rm *.txt
+#rm *.txt
 rm *.jpg
 rm \#*
 rm *.o

@@ -1,4 +1,4 @@
-SRC=vec.cpp
+SRC=
 MAINFILE=main
 CXX=mpiicpc #mpiicpc #mpic++.openmpi
 CXXFLAGS=-O2 -fopenmp -mt_mpi #-g

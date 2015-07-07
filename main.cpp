@@ -10,13 +10,10 @@
 #include <iterator>
 #include <algorithm>
 
-
 #include <unistd.h>
 
 #include "omp.h"
 #include "mpi.h"
-
-#include "vec.h"
 
 using namespace std;
 
@@ -73,8 +70,7 @@ int main(int argc, char *argv[]){
     }
   }
   MPI_Bcast(&nR, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  
-  MPI_Barrier(MPI_COMM_WORLD);
+
   if(DBG){
     cout << "Num Rows      = " << nR  << endl;
     cout << "Num non zeros = " << nnz << endl;
@@ -94,10 +90,11 @@ int main(int argc, char *argv[]){
   int JAf = open((path + "matrix_" + name + "_JA.bin").c_str(), O_RDONLY);
 
   //Déclaration du runtime
-  omp_set_schedule(omp_sched_auto, mpiChunk / nThreads);
+  omp_set_schedule(omp_sched_auto, 0.1 * mpiChunk / nThreads);
 
   //Lecture de IA
-  int *lIA = new int [mpiChunk + 1];
+  int *lIA = NULL;
+  lIA = new int [mpiChunk + 1];
 #pragma omp parallel for schedule(runtime)
   for(int  i = mpiBegin ; i < mpiEnd ; i++){
     lIA[i-mpiBegin]   = 0  ;
@@ -109,8 +106,10 @@ int main(int argc, char *argv[]){
   int nnzBegin = lIA[0];
   int nnzEnd = lIA[mpiChunk];
   int nnzChunk = nnzEnd - nnzBegin;
-  double *lA  = new double [nnzChunk];
-  int    *lJA = new int    [nnzChunk];
+  double *lA  = NULL;
+  lA = new double [nnzChunk];
+  int    *lJA = NULL;
+  lJA = new int    [nnzChunk];
 #pragma omp parallel for schedule(runtime)
   for(int  i = 0 ; i < mpiChunk ; i++){
     for(int j = lIA[i] ; j < lIA[i+1] ; j++){
@@ -122,9 +121,11 @@ int main(int argc, char *argv[]){
   pread(Af, lA, (nnzChunk) * sizeof(*lA), nnzBegin * sizeof(*lA));
   
   //Lecture des données
-  VEC B(path, name);
-  VEC R(B.nR);
-  VEC X(B.nR);
+  int Vf = open((path + "vector_" + name + "_V.bin").c_str(), O_RDONLY);
+  double *X  = NULL;
+  X = new double[nR];
+  pread(Vf, X, nR*sizeof(*X), 0);
+  close(Vf);
 
   //Synchronization
   MPI_Barrier(MPI_COMM_WORLD);
@@ -132,10 +133,10 @@ int main(int argc, char *argv[]){
 
   //Calcul parallèle
   double *SOL = new double[mpiChunk];
-#pragma omp parallel for schedule(runtime)
+#pragma omp parallel for schedule(runtime) firstprivate(X)
   for(int  i = 0 ; i < mpiChunk ; i++){
     for(int j = lIA[i] ; j < lIA[i+1] ; j++){
-      SOL[i] += lA[j-nnzBegin] * B.X[lJA[j-nnzBegin]];
+      SOL[i] += lA[j-nnzBegin] * X[lJA[j-nnzBegin]];
     }
   }
 
